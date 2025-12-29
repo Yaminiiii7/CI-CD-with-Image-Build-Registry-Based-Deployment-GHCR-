@@ -26,9 +26,8 @@ services:
 
 
   flask-app:
-    image: ghcr.io/Yaminiiii7/CI-CD-with-Image-Build-Registry-Based-Deployment-GHCR-:latest
-    build:
-      context: .
+    image: ghcr.io/yaminiiii7/ci-cd-with-image-build-registry-based-deployment-ghcr:latest
+    
 
     ports:
       - "5000:5000"
