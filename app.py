@@ -13,17 +13,32 @@ app.config['MYSQL_DB'] = os.environ.get('MYSQL_DB', 'default_db')
 # Initialize MySQL
 mysql = MySQL(app)
 
+import time
+import MySQLdb
+
 def init_db():
-    with app.app_context():
-        cur = mysql.connection.cursor()
-        cur.execute('''
-        CREATE TABLE IF NOT EXISTS messages (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            message TEXT
-        );
-        ''')
-        mysql.connection.commit()  
-        cur.close()
+    retries = 10
+    delay = 5
+
+    while retries > 0:
+        try:
+            cur = mysql.connection.cursor()
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS messages (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    message TEXT
+                )
+            """)
+            mysql.connection.commit()
+            cur.close()
+            print("Database initialized successfully")
+            return
+        except MySQLdb.OperationalError as e:
+            print(f"DB not ready, retrying... ({retries} left)")
+            retries -= 1
+            time.sleep(delay)
+
+    raise Exception("Database not available after retries")
 
 @app.route('/')
 def hello():
