@@ -21,10 +21,18 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            cd /home/${{ secrets.EC2_USER }}/CICD
+            COMPOSE=/home/${{ secrets.EC2_USER }}/CICD/docker-compose.yml
 
-            docker compose pull
-            docker compose down || true
-            docker compose up -d
+            # remove existing containers first
+            docker compose -f $COMPOSE down --remove-orphans || true
 
-            docker compose ps
+            # pull latest image from public GHCR
+            docker compose -f $COMPOSE pull
+
+            # start fresh
+            docker compose -f $COMPOSE up -d
+
+            docker compose -f $COMPOSE ps
+
+
+
