@@ -1,12 +1,17 @@
-name: Deploy to EC2 (Pull from Public GHCR)
+name: Deploy to EC2 (after GHCR)
 
 on:
-  push:
-    branches: ["main"]
+  workflow_run:
+    workflows: ["Build and Push to GHCR"]
+    types:
+      - completed
 
 jobs:
   deploy:
+    # Only deploy if the GHCR workflow succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+
     steps:
       - name: SSH deploy
         uses: appleboy/ssh-action@v1.0.3
@@ -17,9 +22,6 @@ jobs:
           script: |
             set -e
             cd /home/${{ secrets.EC2_USER }}/CICD
-
-            git fetch --all
-            git reset --hard origin/main
 
             docker compose pull
             docker compose down || true
